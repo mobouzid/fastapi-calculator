@@ -7,6 +7,7 @@ app = FastAPI(title="Calculator API", version="0.1.0")
 class Operands(BaseModel):
     """
     Pydantic model for request payloads containing two operands.
+    Enforced to be numbers (int or float), double-checked in validators if extended in future.
     """
     a: Union[int, float] = Field(..., description="First operand")
     b: Union[int, float] = Field(..., description="Second operand")
@@ -21,7 +22,7 @@ async def root():
 @app.post("/calc/add", summary="Add two numbers")
 async def add(op: Operands):
     """
-    Adds two numbers.
+    Adds two numbers. Safe for numbers, auto-validates type.
     """
     result = op.a + op.b
     return {"operation": "add", "a": op.a, "b": op.b, "result": result}
@@ -46,8 +47,12 @@ async def multiply(op: Operands):
 async def divide(op: Operands):
     """
     Divides the first number by the second. Returns 400 error if dividing by zero.
+    Handles float division as default in Python3.
     """
     if op.b == 0:
         raise HTTPException(status_code=400, detail="Division by zero")
     result = op.a / op.b
     return {"operation": "divide", "a": op.a, "b": op.b, "result": result}
+
+# Note: No hashing operations are present. If there is a need for cryptographic operations in future developments,
+# use hashlib or appropriate libraries following current best security practices (as SonarQube S4790 suggests).
